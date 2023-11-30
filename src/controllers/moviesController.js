@@ -1,10 +1,14 @@
-const { getAllMovies, getMovieById, storeMovie } = require("../services/movies.services")
+const { getAllMovies, getMovieById, storeMovie, updateMovie, deleteMovie } = require("../services/movies.services")
 const paginate = require('express-paginate')
 const createError = require('http-errors')
+
 module.exports = {
     index: async (req, res) => {
+
+        const { keyword } = req.query
+
         try {
-            const { count, movies } = await getAllMovies(req.query.limit, req.skip);
+            const { count, movies } = await getAllMovies(req.query.limit, req.skip, keyword);
             const pagesCount = Math.ceil(count / req.query.limit);
             const currentPage = req.query.page;
             const pages = paginate.getArrayPages(req)(pagesCount, pagesCount, currentPage)
@@ -67,10 +71,41 @@ module.exports = {
             })
         }
     },
-    update: (req, res) => {
+    update: async (req, res) => {
+        try {
 
+            const movieUpdate = await updateMovie(req.params.id, req.body)
+
+            return res.status(200).json({
+                ok: true,
+                message: "Pelicula actualizada con ÉXITO",
+                data: movieUpdate
+            })
+
+        } catch (error) {
+            console.log(error)
+            return res.status(error.status || 500).json({
+                ok: false,
+                status: error.status || 500,
+                error: error.message || 'Upss, hubo un error...'
+            })
+        }
     },
-    delete: (req, res) => {
+    delete: async (req, res) => {
+        try {
+            await deleteMovie(req.params.id)
 
+            return res.status(200).json({
+                ok: true,
+                message: "Pelicula eliminada con ÉXITO",
+            })
+        } catch (error) {
+            console.log(error)
+            return res.status(error.status || 500).json({
+                ok: false,
+                status: error.status || 500,
+                error: error.message || 'Upss, hubo un error...'
+            })
+        }
     }
 } 
