@@ -2,7 +2,7 @@ const { Op } = require("sequelize");
 const db = require("../database/models");
 
 const getAllMovies = async (limit, offset, keyword) => {
-    
+
     const options = keyword ? {
         where: {
             title: {
@@ -11,7 +11,7 @@ const getAllMovies = async (limit, offset, keyword) => {
         },
 
     }
-    : null
+        : null
 
     try {
         const movies = await db.Movie.findAll({
@@ -200,6 +200,8 @@ const deleteMovie = async (id) => {
             };
         }
 
+        const movie = await db.Movie.findByPk(id)
+
         if (!movie) {
             throw {
                 status: 404,
@@ -208,7 +210,9 @@ const deleteMovie = async (id) => {
         }
 
         await db.Actor_Movie.destroy({
-            movie_id: id,
+            where: {
+                movie_id: id
+            }
         });
 
         await db.Actor.update(
@@ -221,9 +225,11 @@ const deleteMovie = async (id) => {
                 },
             }
         );
-        await movie.detroy();
+
+        await movie.destroy();
 
         return null;
+
     } catch (error) {
         console.log(error);
         throw {
